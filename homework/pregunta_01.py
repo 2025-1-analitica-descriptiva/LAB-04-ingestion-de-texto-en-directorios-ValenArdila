@@ -5,8 +5,32 @@
 Escriba el codigo que ejecute la accion solicitada en cada pregunta.
 """
 
+import zipfile
+import os
+import pandas as pd 
+import glob    
+    
+def process_files(folder):
+    data = {"phrase": [],
+            "target": []}
+    for subfolder in os.listdir(folder):
+        subfolder_path = os.path.join(folder, subfolder)
+        if os.path.isdir(subfolder_path):
+            category = subfolder
+            for file_name in os.listdir(subfolder_path):
+                if file_name.endswith(".txt"):
+                    file_path = os.path.join(subfolder_path, file_name)
+                    with open(file_path, "r") as file:
+                        content = file.read()
+                    data["phrase"].append(content)
+                    data["target"].append(category)
+    return data
+    
+    
 
 def pregunta_01():
+    
+    
     """
     La información requerida para este laboratio esta almacenada en el
     archivo "files/input.zip" ubicado en la carpeta raíz.
@@ -71,3 +95,44 @@ def pregunta_01():
 
 
     """
+    
+    
+    zip_file_path = "./files/input.zip"
+    extract_path = "./input"
+    root_path = "./input/input"
+    output_directory= "./files/output"
+    
+    if not os.path.exists(extract_path):
+        os.makedirs(extract_path)
+        
+        with zipfile.ZipFile(zip_file_path, "r") as zip_data:
+            zip_data.extractall(extract_path)
+    
+    #recorrer la carpeta test
+    test_path = os.path.join(root_path, "test")
+    test_data = process_files(test_path)
+    df_test = pd.DataFrame(test_data)
+    df_path_test = os.path.join(output_directory, "test_dataset.csv")
+    
+    #Recorrer la carpeta train
+    train_path = os.path.join(root_path, "train")
+    train_data = process_files(train_path)
+    df_train = pd.DataFrame(train_data)
+    df_path_train = os.path.join(output_directory, "train_dataset.csv")
+    
+    #guardar los datos en output
+    if os.path.exists(output_directory):
+        files = glob.glob(f"{output_directory}/*")
+        for file in files:
+            os.remove(file)
+        os.rmdir(output_directory)
+    
+    os.mkdir(output_directory)
+    df_train.to_csv(df_path_train, index=False)
+    df_test.to_csv(df_path_test, index=False)
+    
+    
+    
+if __name__ == "__main__":
+    pregunta_01()
+    
